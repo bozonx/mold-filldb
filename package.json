@@ -1,0 +1,29 @@
+{
+  "name": "mold-filldb",
+  "version": "0.0.0",
+  "description": "Fill dev data to db like pounch or memory.",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/ipkozyrin/mold-filldb.git"
+  },
+  "keywords": [
+    "mold",
+    "data",
+    "dev",
+    "data fill"
+  ],
+  "author": {
+    "name": "Ivan Kozyrin",
+    "email": "ipkozyrin@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/ipkozyrin/mold-filldb#readme",
+  "main": "index.js",
+  "dependencies": {
+    "babel-core": "^6.18.0",
+    "babel-loader": "^6.2.7",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "lodash": "^4.17.2"
+  }
+}

@@ -1,0 +1,9 @@
+# idea's files
+.idea/workspace.xml
+
+node_modules
+libs
+
+# Logs
+logs
+*.log
