@@ -97,34 +97,15 @@ class Filler {
         if (this._isDataContainer(item.schema)) {
           this._fillContainer(subPath, item.schema);
         }
-        else {
-          // go deeper
-          this._schemaRecursuveAdd(subPath + '.schema', item.schema);
-        }
+        // go deeper
+        this._schemaRecursuveAdd(subPath + '.schema', item.schema);
       }
       else if (_.includes(['collection', 'documentsCollection', 'pagedCollection'], item.type)) {
         // TODO: а если нету item.dev???
         if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-          //this._fillCollection(subPath, item.dev.repeat, item.item);
+          this._fillCollection(subPath, item.dev.repeat, item.item);
         }
       }
-      else if (_.includes(['string', 'number', 'boolean'], item.type)) {
-
-      }
-
-      // if (item.dev) {
-      //   // TODO: надо наверное собрать все примитивы и установить разом
-      //   if (_.isFunction(item.dev)) {
-      //     this._fillContainer(subPath, item.dev());
-      //   }
-      //   else if (_.isString(item.dev) || _.isNumber(item.dev)) {
-      //     this._fillContainer(subPath, item.dev);
-      //   }
-      //   else if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-      //     this._fillCollection(subPath, item.dev.repeat, item.item);
-      //   }
-      // }
-      // this._schemaRecursuveAdd(subPath, item);
     });
   }
 }
