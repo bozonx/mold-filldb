@@ -56,51 +56,75 @@ class Filler {
       });
     }
 
-    console.log(5555, container)
-
     return container;
    }
 
   _fillCollection(schemaPath, repeats, itemSchema) {
     const moldPath = this._convertSchemaPathToMold(schemaPath);
-    console.log(222222, moldPath, repeats, itemSchema);
 
     for (let i=0; i < repeats; i++) {
       this.mold.child(moldPath).create(this._prepareItem(itemSchema));
     }
   }
 
-  _fillContainer(schemaPath, value) {
+  _fillContainer(schemaPath, schema) {
     const moldPath = this._convertSchemaPathToMold(schemaPath);
-    console.log(1111111, moldPath, value)
-    //this.mold.children(moldPath).update({});
 
-
+    const container = {};
     const result = [];
-    this._collectContainersData('', itemSchema.schema, result);
+    this._collectContainersData('', schema, result);
     _.each(result, (item) => {
       _.set(container, item[0], item[1]);
     });
 
+    const instance = this.mold.child(moldPath);
+    instance.update(container);
+    instance.put(container);
   }
 
-  _schemaRecursuveAdd(currentPath, currentValue) {
-    if (!_.isPlainObject(currentValue)) return;
-    _.each(currentValue, (item, name) => {
+  _isDataContainer(containerSchema) {
+    return _.find(containerSchema, (item) => {
+      if (item.dev && _.includes(['string', 'number', 'boolean'], item.type)) return item;
+    });
+  }
+
+  _schemaRecursuveAdd(currentPath, schema) {
+    if (!_.isPlainObject(schema)) return;
+    _.each(schema, (item, name) => {
       const subPath = _.trimStart(`${currentPath}.${name}`, '.');
-      if (item.dev) {
-        // TODO: надо наверное собрать все примитивы и установить разом
-        if (_.isFunction(item.dev)) {
-          this._fillContainer(subPath, item.dev());
+
+      if (_.includes(['container', 'document'], item.type)) {
+        if (this._isDataContainer(item.schema)) {
+          this._fillContainer(subPath, item.schema);
         }
-        else if (_.isString(item.dev) || _.isNumber(item.dev)) {
-          this._fillContainer(subPath, item.dev);
-        }
-        else if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-          this._fillCollection(subPath, item.dev.repeat, item.item);
+        else {
+          // go deeper
+          this._schemaRecursuveAdd(subPath + '.schema', item.schema);
         }
       }
-      this._schemaRecursuveAdd(subPath, item);
+      else if (_.includes(['collection', 'documentsCollection', 'pagedCollection'], item.type)) {
+        // TODO: а если нету item.dev???
+        if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
+          //this._fillCollection(subPath, item.dev.repeat, item.item);
+        }
+      }
+      else if (_.includes(['string', 'number', 'boolean'], item.type)) {
+
+      }
+
+      // if (item.dev) {
+      //   // TODO: надо наверное собрать все примитивы и установить разом
+      //   if (_.isFunction(item.dev)) {
+      //     this._fillContainer(subPath, item.dev());
+      //   }
+      //   else if (_.isString(item.dev) || _.isNumber(item.dev)) {
+      //     this._fillContainer(subPath, item.dev);
+      //   }
+      //   else if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
+      //     this._fillCollection(subPath, item.dev.repeat, item.item);
+      //   }
+      // }
+      // this._schemaRecursuveAdd(subPath, item);
     });
   }
 }
