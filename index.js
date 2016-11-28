@@ -3,94 +3,52 @@ import _ from 'lodash';
 
 class Filler {
   constructor(mold) {
-
+    this.mold = mold;
+    this.schema = mold.$$schemaManager.getFullSchema();
   }
 
-  fillDb(mold) {
-    const schema = mold.$$schemaManager.getFullSchema();
-    _schemaRecursuveAdd('', schema);
+  fillDb() {
+    this._schemaRecursuveAdd('', this.schema);
   }
 
-  convertSchemaPathToMold(schemaPath) {
+  clearDb() {
+    // TODO: заверное надо запросить в драйвере все корни или все докементы и удалить их
+  }
+
+  _convertSchemaPathToMold(schemaPath) {
     return schemaPath.replace(/.schema/, '');
   }
 
   _fillCollection(schemaPath, repeats, itemSchema) {
-    const moldPath = convertSchemaPathToMold(schemaPath);
+    const moldPath = this._convertSchemaPathToMold(schemaPath);
     console.log(222222, moldPath, repeats, itemSchema)
   }
 
   _fillPrimitive(schemaPath, value) {
-    const moldPath = convertSchemaPathToMold(schemaPath);
+    const moldPath = this._convertSchemaPathToMold(schemaPath);
     console.log(1111111, moldPath, value)
   }
 
   _schemaRecursuveAdd(currentPath, currentValue) {
     if (!_.isPlainObject(currentValue)) return;
-    _.each(currentValue, function(item, name) {
+    _.each(currentValue, (item, name) => {
       const subPath = _.trimStart(`${currentPath}.${name}`, '.');
       if (item.dev) {
         if (_.isFunction(item.dev)) {
-          _fillPrimitive(subPath, item.dev());
+          this._fillPrimitive(subPath, item.dev());
         }
         else if (_.isString(item.dev) || _.isNumber(item.dev)) {
-          _fillPrimitive(subPath, item.dev);
+          this._fillPrimitive(subPath, item.dev);
         }
         else if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-          _fillCollection(subPath, item.dev, item.schema);
+          this._fillCollection(subPath, item.dev, item.item);
         }
       }
-      _schemaRecursuveAdd(subPath, item);
+      this._schemaRecursuveAdd(subPath, item);
     });
   }
 }
 
-function convertSchemaPathToMold(schemaPath) {
-  return schemaPath.replace(/.schema/, '');
-}
-
-function _fillCollection(schemaPath, repeats, itemSchema) {
-  const moldPath = convertSchemaPathToMold(schemaPath);
-  console.log(222222, moldPath, repeats, itemSchema)
-}
-
-function _fillPrimitive(schemaPath, value) {
-  const moldPath = convertSchemaPathToMold(schemaPath);
-  console.log(1111111, moldPath, value)
-}
-
-function _schemaRecursuveAdd(currentPath, currentValue) {
-  if (!_.isPlainObject(currentValue)) return;
-  _.each(currentValue, function(item, name) {
-    const subPath = _.trimStart(`${currentPath}.${name}`, '.');
-    if (item.dev) {
-      if (_.isFunction(item.dev)) {
-        _fillPrimitive(subPath, item.dev());
-      }
-      else if (_.isString(item.dev) || _.isNumber(item.dev)) {
-        _fillPrimitive(subPath, item.dev);
-      }
-      else if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-        _fillCollection(subPath, item.dev, item.schema);
-      }
-    }
-    _schemaRecursuveAdd(subPath, item);
-  });
-}
-
-
-function fillDb(mold) {
-  const schema = mold.$$schemaManager.getFullSchema();
-  _schemaRecursuveAdd('', schema);
-}
-
-function clearDb(mold) {
-  // TODO: заверное надо запросить в драйвере все корни или все докементы и удалить их
-}
-
 export default function (mold) {
-  return {
-    fillDb: () => fillDb(mold),
-    clearDb: () => clearDb(mold),
-  }
+  return new Filler(mold);
 }
