@@ -16,8 +16,31 @@ class Filler {
     // TODO: наверное надо запросить в драйвере все корни или все докементы и удалить их
   }
 
+  _getDev(dev) {
+    if (_.isFunction(dev)) {
+      return dev();
+    }
+    else if (_.isString(dev) || _.isNumber(dev)) {
+      return dev;
+    }
+  }
+
   _convertSchemaPathToMold(schemaPath) {
     return schemaPath.replace(/.schema/, '');
+  }
+
+  _collectContainersData(currentPath, containerSchema, result) {
+    _.each(containerSchema, (item, name) => {
+      // TODO: not plainObject
+      // TODO: поддержка других типов - collection и тд
+      if (item.type == 'container' || item.type == 'document') {
+
+      }
+      else if (_.includes(['string', 'number', 'boolean'], item.type)) {
+        const subPath = _.trimStart(`${currentPath}.${name}`, '.');
+        result.push([subPath, this._getDev(item.dev)]);
+      }
+    })
   }
 
   _prepareItem(itemSchema) {
@@ -25,15 +48,11 @@ class Filler {
 
     // TODO: поддержка других типов - collection и тд
     if (itemSchema.type == 'document' || itemSchema.type == 'container') {
-      _.each(itemSchema.schema, (value, name) => {
-        if (_.isFunction(value.dev)) {
-          container[name] = value.dev();
-        }
-        else if (_.isString(value.dev) || _.isNumber(value.dev)) {
-          container[name] = value.dev;
-        }
-        // TODO: поддержка вложенного контейнера - надо рекурсивно
-      })
+      const result = [];
+      this._collectContainersData('', itemSchema.schema, result);
+      _.each(result, (item) => {
+        _.set(container, item[0], item[1]);
+      });
     }
 
     console.log(5555, container)
