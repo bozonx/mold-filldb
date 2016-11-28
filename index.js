@@ -31,13 +31,14 @@ class Filler {
 
   _collectContainersData(currentPath, containerSchema, result) {
     _.each(containerSchema, (item, name) => {
-      // TODO: not plainObject
+      if (!_.isPlainObject(item)) return;
+      const subPath = _.trimStart(`${currentPath}.${name}`, '.');
       // TODO: поддержка других типов - collection и тд
       if (item.type == 'container' || item.type == 'document') {
-
+        this._collectContainersData(subPath, item.schema, result);
       }
       else if (_.includes(['string', 'number', 'boolean'], item.type)) {
-        const subPath = _.trimStart(`${currentPath}.${name}`, '.');
+        if (!item.dev) return;
         result.push([subPath, this._getDev(item.dev)]);
       }
     })
@@ -70,10 +71,17 @@ class Filler {
   }
 
   _fillContainer(schemaPath, value) {
-
     const moldPath = this._convertSchemaPathToMold(schemaPath);
     console.log(1111111, moldPath, value)
     //this.mold.children(moldPath).update({});
+
+
+    const result = [];
+    this._collectContainersData('', itemSchema.schema, result);
+    _.each(result, (item) => {
+      _.set(container, item[0], item[1]);
+    });
+
   }
 
   _schemaRecursuveAdd(currentPath, currentValue) {
