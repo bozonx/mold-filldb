@@ -2,18 +2,39 @@ import _ from 'lodash';
 
 
 class Filler {
-  constructor(mold) {
+  constructor(mold, options) {
     this.mold = mold;
     this.schema = mold.$$schemaManager.getFullSchema();
-    //this.primitivesInserts = {};
+    this.options = options || {};
   }
 
+  // This method you run
   fillDb() {
+    if (this.options.before) this.options.before();
     this._schemaRecursuveAdd('', this.schema);
+    if (this.options.after) this.options.after();
   }
 
-  clearDb() {
-    // TODO: наверное надо запросить в драйвере все корни или все докементы и удалить их
+  _schemaRecursuveAdd(currentPath, schema) {
+    if (!_.isPlainObject(schema)) return;
+    _.each(schema, (item, name) => {
+      const subPath = _.trimStart(`${currentPath}.${name}`, '.');
+
+      // TODO: не привязываться к типу
+      if (_.includes(['container', 'document'], item.type)) {
+        if (this._isDataContainer(item.schema)) {
+          this._fillContainer(subPath, item.schema);
+        }
+        // go deeper
+        this._schemaRecursuveAdd(subPath + '.schema', item.schema);
+      }
+      else if (_.includes(['collection', 'documentsCollection', 'pagedCollection'], item.type)) {
+        // TODO: а если нету item.dev???
+        if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
+          this._fillCollection(subPath, item.dev.repeat, item.item);
+        }
+      }
+    });
   }
 
   _getDev(dev) {
@@ -88,26 +109,6 @@ class Filler {
     });
   }
 
-  _schemaRecursuveAdd(currentPath, schema) {
-    if (!_.isPlainObject(schema)) return;
-    _.each(schema, (item, name) => {
-      const subPath = _.trimStart(`${currentPath}.${name}`, '.');
-
-      if (_.includes(['container', 'document'], item.type)) {
-        if (this._isDataContainer(item.schema)) {
-          this._fillContainer(subPath, item.schema);
-        }
-        // go deeper
-        this._schemaRecursuveAdd(subPath + '.schema', item.schema);
-      }
-      else if (_.includes(['collection', 'documentsCollection', 'pagedCollection'], item.type)) {
-        // TODO: а если нету item.dev???
-        if (_.isPlainObject(item.dev) && _.isNumber(item.dev.repeat)) {
-          this._fillCollection(subPath, item.dev.repeat, item.item);
-        }
-      }
-    });
-  }
 }
 
 export default function (mold) {
