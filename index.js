@@ -111,6 +111,6 @@ class Filler {
 
 }
 
-export default function (mold) {
-  return new Filler(mold);
+export default function (mold, options) {
+  return new Filler(mold, options);
 }
