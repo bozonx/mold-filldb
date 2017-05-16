@@ -4,7 +4,7 @@
   "description": "Fill dev data to db like pounch or memory.",
   "repository": {
     "type": "git",
-    "url": "git@github.com:ipkozyrin/mold-filldb.git"
+    "url": "git@github.com:bozonx/mold-filldb.git"
   },
   "keywords": [
     "mold",
